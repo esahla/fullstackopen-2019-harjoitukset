@@ -2,82 +2,177 @@ const mongoose = require('mongoose')
 const supertest = require('supertest')
 const helper = require('./test_helper')
 const app = require('../app')
-const Note = require('../models/note')
 const api = supertest(app)
+const Note = require('../models/note')
+const User = require('../models/user')
 
-// beforeAll(() => {
-//   console.log('Alustus...')
-// })
+describe('when there are initially some notes saved then', () => {
+  beforeEach(async () => {
+    await Note.remove({})
+    const noteObjects = helper.initialNotes.map(note => new Note(note))
+    const promiseArray = noteObjects.map(note => note.save())
+    await Promise.all(promiseArray)
+  })
 
-beforeEach(async () => {
-  await Note.deleteMany({})
+  test('notes are returned as json', async () => {
+    await api
+      .get('/api/notes')
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+  })
 
-  let noteObject = new Note(helper.initialNotes[0])
-  await noteObject.save()
+  test('all notes are returned', async () => {
+    const response = await api.get('/api/notes')
 
-  noteObject = new Note(helper.initialNotes[1])
-  await noteObject.save()
-})
+    expect(response.body.length).toBe(helper.initialNotes.length)
+  })
 
-test('notes are returned as json', async () => {
-  await api
-    .get('/api/notes')
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
-})
+  test('a specific note is within the returned notes', async () => {
+    const response = await api.get('/api/notes')
 
-test('all notes are returned', async () => {
-  const response = await api.get('/api/notes')
+    const contents = response.body.map(r => r.content)
 
-  expect(response.body.length).toBe(helper.initialNotes.length)
-})
+    expect(contents).toContain(
+      'HTTP-protokollan tärkeimmät metodit ovat GET ja POST'
+    )
+  })
 
-test('a specific note is within the returned notes', async () => {
-  const response = await api.get('/api/notes')
+  describe('and when adding a new note', () => {
+    test('a valid note can be added ', async () => {
+      const newNote = {
+        content: 'async/await yksinkertaistaa asynkronisten funktioiden kutsua',
+        important: true,
+      }
 
-  const contents = response.body.map(r => r.content)
+      await api
+        .post('/api/notes')
+        .send(newNote)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
 
-  expect(contents).toContain(
-    'HTTP-protokollan tärkeimmät metodit ovat GET ja POST'
-  )
-})
+      const notesAtEnd = await helper.notesInDb()
+      expect(notesAtEnd.length).toBe(helper.initialNotes.length + 1)
 
-test('a valid note can be added ', async () => {
-  const newNote = {
-    content: 'async/await yksinkertaistaa asynkronisten funktioiden kutsua',
-    important: true,
-  }
+      const contents = notesAtEnd.map(n => n.content)
+      expect(contents).toContain(
+        'async/await yksinkertaistaa asynkronisten funktioiden kutsua'
+      )
+    })
 
-  await api
-    .post('/api/notes')
-    .send(newNote)
-    .expect(200)
-    .expect('Content-Type', /application\/json/)
+    test('a too short note cannot be added ', async () => {
+      const newNote = {
+        content: 'mini',
+        important: false,
+      }
 
-  const notesAtEnd = await helper.notesInDb()
-  expect(notesAtEnd.length).toBe(helper.initialNotes.length + 1)
+      await api
+        .post('/api/notes')
+        .send(newNote)
+        .expect(400)
+        .expect('Content-Type', /application\/json/)
 
-  const contents = notesAtEnd.map(n => n.content)
-  expect(contents).toContain(
-    'async/await yksinkertaistaa asynkronisten funktioiden kutsua'
-  )
-})
+      const notesAtEnd = await helper.notesInDb()
 
-test('note without content is not added', async () => {
-  const newNote = {
-    important: true
-  }
+      expect(notesAtEnd.length).toBe(helper.initialNotes.length)
+    })
 
-  await api
-    .post('/api/notes')
-    .send(newNote)
-    .expect(400)
+    test('note without content is not added', async () => {
+      const newNote = {
+        important: true
+      }
 
-  const notesAtEnd = await helper.notesInDb()
+      await api
+        .post('/api/notes')
+        .send(newNote)
+        .expect(400)
 
-  expect(notesAtEnd.length).toBe(helper.initialNotes.length)
-})
+      const notesAtEnd = await helper.notesInDb()
 
-afterAll(() => {
-  mongoose.connection.close()
+      expect(notesAtEnd.length).toBe(helper.initialNotes.length)
+    })
+  })
+
+  describe('and when viewing a note', () => {
+
+    test('a specific note can be viewed', async () => {
+      const notesInDBAtStart = await helper.notesInDb()
+      const noteToView = notesInDBAtStart[0]
+
+      const resultNote = await api
+        .get(`/api/notes/${noteToView.id}`)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+      expect(resultNote.body).toEqual(noteToView)
+    })
+
+    test('fails with statuscode 404 if note does not exist', async () => {
+      const validNonexistingId = await helper.nonExistingId()
+
+      await api
+        .get(`/api/notes/${validNonexistingId}`)
+        .expect(404)
+    })
+
+    test('fails with statuscode 400 id is invalid', async () => {
+      const invalidId = '5a3d5da59070081a82a3445'
+
+      await api
+        .get(`/api/notes/${invalidId}`)
+        .expect(400)
+    })
+  })
+
+  describe('and deletion of a note', () => {
+    test('succeeds with a valid id with status code HTTP 200', async () => {
+      const notesAtStart = await helper.notesInDb()
+      const noteToDelete = notesAtStart[0]
+
+      await api
+        .delete(`/api/notes/${noteToDelete.id}`)
+        .expect(204)
+
+      const notesAfterDelete = await helper.notesInDb()
+
+      expect(notesAfterDelete.length).toBe(helper.initialNotes.length - 1)
+
+      const contents = notesAfterDelete.map(r => r.content)
+      expect(contents).not.toContain(noteToDelete.content)
+    })
+
+
+    describe('when there is initially one user in DB', () => {
+      beforeEach(async () => {
+        await User.deleteMany({})
+        const user = new User({ username: 'root', password: 'sekret' })
+        await user.save()
+      })
+
+      test('creation succeeds with a fresh username', async () => {
+        const usersAtStart = await helper.usersInDb()
+
+        const newUser = {
+          username: 'mluukkai',
+          name: 'Matti Luukkainen',
+          password: 'salainen',
+        }
+
+        await api
+          .post('/api/users')
+          .send(newUser)
+          .expect(200)
+          .expect('Content-Type', /application\/json/)
+
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd.length).toBe(usersAtStart.length + 1)
+
+        const usernames = usersAtEnd.map(u => u.username)
+        expect(usernames).toContain(newUser.username)
+      })
+    })
+
+    afterAll(() => {
+      mongoose.connection.close()
+    })
+  })
 })

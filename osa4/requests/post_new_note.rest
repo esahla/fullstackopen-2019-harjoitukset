@@ -2,7 +2,7 @@ POST http://localhost:3001/api/notes
 Content-Type: application/json
 
 {
-    "content": "qwert!?________IIIIII",
-    "date": "11.23.1230",
+    "content": "ABC_123!",
+    "date": "11.3.1230",
     "important": "true"
 }
