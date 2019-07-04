@@ -4,6 +4,16 @@ const helper = require('./test_helper')
 const app = require('../app')
 const api = supertest(app)
 const Note = require('../models/note')
+const User = require('../models/user')
+let theToken = {}
+
+beforeAll(async () => {
+  await User.deleteMany({})
+  await helper.createTestUser()
+  theToken = await api
+    .post('/api/login')
+    .send({ username: 'autotester01', password: 'autotester123' })
+})
 
 describe('when there are initially some notes saved then', () => {
   beforeEach(async () => {
@@ -22,7 +32,6 @@ describe('when there are initially some notes saved then', () => {
 
   test('all notes are returned', async () => {
     const response = await api.get('/api/notes')
-
     expect(response.body.length).toBe(helper.initialNotes.length)
   })
 
@@ -46,6 +55,7 @@ describe('when there are initially some notes saved then', () => {
       await api
         .post('/api/notes')
         .send(newNote)
+        .set('Authorization', `bearer ${theToken.body.token}`)
         .expect(200)
         .expect('Content-Type', /application\/json/)
 
@@ -67,6 +77,7 @@ describe('when there are initially some notes saved then', () => {
       await api
         .post('/api/notes')
         .send(newNote)
+        .set('Authorization', `bearer ${theToken.body.token}`)
         .expect(400)
         .expect('Content-Type', /application\/json/)
 
@@ -83,6 +94,7 @@ describe('when there are initially some notes saved then', () => {
       await api
         .post('/api/notes')
         .send(newNote)
+        .set('Authorization', `bearer ${theToken.body.token}`)
         .expect(400)
 
       const notesAtEnd = await helper.notesInDb()

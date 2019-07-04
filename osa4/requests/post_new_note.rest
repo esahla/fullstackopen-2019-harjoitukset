@@ -1,9 +1,8 @@
 POST http://localhost:3001/api/notes
 Content-Type: application/json
+Authorization: bearer ehbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InNhaGxhMSIsImlkIjoiNWQxNGQwYzc0NmNhYjI2YWVjNTcxOTM4IiwiaWF0IjoxNTYyMjI2OTE5fQ.SThQN3t9OJmMpV4v-6-Va4Tcy6PDDIIgJX2aromo_mA
 
 {
-    "content": "Plii plaa pllooooo",
-    "date": "11.3.1230",
-    "important": "true",
-    "userId": "5d14c3757a87488aa0397724"
+    "content": "Plii psadlaa pllooooo",
+    "important": "false"
 }
