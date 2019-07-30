@@ -62,7 +62,7 @@ describe('When there is initially one user at db', () => {
       const newUser = {
         username: 'huonosalasana',
         name: 'Superuser',
-        password: 'abc1',
+        password: 'a1',
       }
 
       const result = await api
@@ -71,7 +71,7 @@ describe('When there is initially one user at db', () => {
         .expect(400)
         .expect('Content-Type', /application\/json/)
 
-      expect(result.body.error).toContain('Minimum length is 6 characters')
+      expect(result.body.error).toContain('Minimum length is 3 characters')
 
       const usersAtEnd = await helper.usersInDb()
       expect(usersAtEnd.length).toBe(usersAtStart.length)
@@ -81,7 +81,7 @@ describe('When there is initially one user at db', () => {
       const usersAtStart = await helper.usersInDb()
 
       const newUser = {
-        username: 'no',
+        username: 'SU',
         name: 'Superuser',
         password: 'abc123',
       }
