@@ -23,7 +23,7 @@ const Footer = () => {
   )
 }
 
-const App = () => {
+const App = (props) => {
   const [notes, setNotes] = useState([])
   const [newNote, setNewNote] = useState('')
   const [showAll, setShowAll] = useState(true)
@@ -34,6 +34,8 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
   const noteFormRef = React.createRef()
+
+  const store = props.store
 
   const handleLogin = async (event) => {
     event.preventDefault()
@@ -97,11 +99,6 @@ const App = () => {
     noteService
       .remove(id)
       .then(() => { setNotes(notes.filter(note => note.id !== id)) })
-    //Note: tätä voi käyttää jos haluaa varmasti viimeisimmän tilan:
-    /*      .then(() => axios.get('http://localhost:3001/notes')
-            .then(response => {
-              setNotes(response.data)
-            })) */
   }
 
   const rows = () => notesToShow.map(note =>
@@ -114,10 +111,10 @@ const App = () => {
   )
 
   const addNote = (event) => {
-    event.preventDefault() 
+    event.preventDefault()
     noteFormRef.current.toggleVisibility()
-    const noteObject = { 
-      content: newNote, 
+    const noteObject = {
+      content: newNote,
       date: new Date().toISOString(),
       important: isImportant,
     }
@@ -134,44 +131,44 @@ const App = () => {
     setNewNote(event.target.value)
   }
 
-  const Feedback = () => {
-    if (newNote === '') {
-      return (
-        <div>
-          <p>Tekstikenttä on tyhjä. Kirjoita jotain.</p>
-        </div>
-      )
-    }
+  // const Feedback = () => {
+  //   if (newNote === '') {
+  //     return (
+  //       <div>
+  //         <p>Tekstikenttä on tyhjä. Kirjoita jotain.</p>
+  //       </div>
+  //     )
+  //   }
 
-    return (
-      <div>
-        <p>{notes.length + 1}. muistiinpano: "{newNote}"</p>
-      </div>
-    )
-  }
+  //   return (
+  //     <div>
+  //       <p>{notes.length + 1}. muistiinpano: "{newNote}"</p>
+  //     </div>
+  //   )
+  // }
 
-  const handleCheckboxChange = (event) => {
-    setImportance(!isImportant)
-  }
+  // const handleCheckboxChange = (event) => {
+  //   setImportance(!isImportant)
+  // }
 
-  const Important = () => (
-    <div>
-      <input checked={isImportant} type="checkbox" id="important" onChange={handleCheckboxChange} />
-      <label htmlFor="important">Tärkeä muistiinpano</label>
-    </div>
-  )
+  // const Important = () => (
+  //   <div>
+  //     <input checked={isImportant} type="checkbox" id="important" onChange={handleCheckboxChange} />
+  //     <label htmlFor="important">Tärkeä muistiinpano</label>
+  //   </div>
+  // )
 
-  const Button = () => {
-    if (newNote === '') {
-      return (
-        <button disabled type="submit">tallenna</button>
-      )
-    }
+  // const Button = () => {
+  //   if (newNote === '') {
+  //     return (
+  //       <button disabled type="submit">tallenna</button>
+  //     )
+  //   }
 
-    return (
-      <button type="submit">tallenna</button>
-    )
-  }
+  //   return (
+  //     <button type="submit">tallenna</button>
+  //   )
+  // }
 
   const loginForm = () => {
     const hideWhenVisible = { display: loginVisible ? 'none' : '' }
@@ -208,14 +205,6 @@ const App = () => {
         />
       </Togglable>
     </div>
-
-    // <form onSubmit={addNote}>
-    //   <input
-    //     value={newNote} onChange={handleNoteChange} placeholder='Tee muistiinpano...' />
-    //   <Button />
-    //   <Important />
-    //   <Feedback />
-    // </form>
   )
 
   return (
@@ -240,6 +229,16 @@ const App = () => {
       <ul>
         {rows()}
       </ul>
+      <div>
+        Reducerilla
+        <ul>
+          {store.getState().map(note =>
+            <li key={note.id}>
+              {note.content} <strong>{note.important ? 'important' : ''}</strong>
+            </li>
+          )}
+        </ul>
+      </div>
 
       <Footer />
     </div>
