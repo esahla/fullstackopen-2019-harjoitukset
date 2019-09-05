@@ -2,7 +2,6 @@ import React from 'react'
 import '@testing-library/jest-dom/extend-expect'
 import '@testing-library/react/cleanup-after-each'
 import { render, fireEvent } from '@testing-library/react'
-import { prettyDOM } from '@testing-library/dom'
 import Note from './Note'
 
 test('renders content', () => {
@@ -14,8 +13,6 @@ test('renders content', () => {
   const component = render(
     <Note note={note} />
   )
-
-  const li = component.container.querySelector('li')
 
   // tapa 1
   expect(component.container).toHaveTextContent(
