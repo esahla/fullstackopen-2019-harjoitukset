@@ -16,8 +16,6 @@ test('renders content', () => {
   )
 
   const li = component.container.querySelector('li')
-  
-  console.log(prettyDOM(li))
 
   // tapa 1
   expect(component.container).toHaveTextContent(

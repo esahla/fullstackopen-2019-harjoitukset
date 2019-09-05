@@ -5,7 +5,7 @@ import App from './App'
 import noteReducer from './reducers/noteReducer'
 import './index.css'
 
-const store = createStore(noteReducer)
+const store = createStore(noteReducer, window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__())
 
 store.dispatch({
   type: 'NEW_NOTE',
@@ -14,7 +14,7 @@ store.dispatch({
     important: true,
     id: 1
   }
-})
+})  
 
 store.dispatch({
   type: 'NEW_NOTE',

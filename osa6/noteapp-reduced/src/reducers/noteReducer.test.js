@@ -49,4 +49,35 @@ describe('noteReducer', () => {
       id: 2
     })
   })
+
+  test('removes correct note when existing id is provided', () => {
+    const state = [
+      {
+        content: 'the app state is in redux store',
+        important: true,
+        id: 1
+      },
+      {
+        content: 'state changes are made with actions',
+        important: false,
+        id: 2
+      }]
+  
+    const action = {
+      type: 'REMOVE_NOTE',
+      data: {
+        id: 2
+      }
+    }
+  
+    deepFreeze(state)
+    const newState = noteReducer(state, action)
+    expect(newState.length).toBe(1)
+    expect(newState).toContainEqual(state[0])
+    expect(newState).not.toContainEqual({
+      content: 'state changes are made with actions',
+      important: true,
+      id: 2
+    })
+  })
 })

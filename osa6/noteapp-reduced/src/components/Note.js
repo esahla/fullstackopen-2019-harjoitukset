@@ -4,7 +4,8 @@ const Note = ({ note, toggleImportance, deleteNote }) => {
   const label = note.important ? 'make not important' : 'make important'
   return (
     <li className='note'>
-      {note.content}
+      <span onClick={toggleImportance}>{note.content}</span> 
+      <strong>{note.important ? ' important ' : ''}</strong>
       <button onClick={toggleImportance}>{label}</button>
       <button onClick={deleteNote}>Delete</button>
     </li>
@@ -12,4 +13,3 @@ const Note = ({ note, toggleImportance, deleteNote }) => {
 }
 
 export default Note
-

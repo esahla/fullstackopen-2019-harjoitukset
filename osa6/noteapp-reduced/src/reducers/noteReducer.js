@@ -1,3 +1,37 @@
+export const toggleImportanceOf = (id) => {
+  return {
+    type: 'TOGGLE_IMPORTANCE',
+    data: { id }
+  }
+}
+
+const generateId = () =>
+  Number((Math.random() * 1000000).toFixed(0))
+
+export const createNote = (content) => {
+  return (
+    {
+      type: 'NEW_NOTE',
+      data: {
+        content,
+        important: false,
+        id: generateId()
+      }
+    }
+  )
+}
+
+export const removeNote = (id) => {
+  return (
+    {
+      type: 'REMOVE_NOTE',
+      data: {
+        id: id
+      }
+    }
+  )
+}
+
 const noteReducer = (state = [], action) => {
   switch (action.type) {
     case 'NEW_NOTE':
@@ -12,6 +46,8 @@ const noteReducer = (state = [], action) => {
       return state.map(note =>
         note.id !== id ? note : changedNote
       )
+    case 'REMOVE_NOTE':
+      return state.filter(item => item.id !== action.data.id)
     default:
       return state
   }
