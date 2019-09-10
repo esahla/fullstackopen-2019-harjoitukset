@@ -25,9 +25,7 @@ export const removeNote = (id) => {
   return (
     {
       type: 'REMOVE_NOTE',
-      data: {
-        id: id
-      }
+      data: { id }
     }
   )
 }
