@@ -1,10 +1,10 @@
 import React from 'react'
+import { connect } from 'react-redux'
 import { filterChange } from '../reducers/filterReducer'
 
-const VisibilityFilter = ({ store }) => {
-
+const VisibilityFilter = (props) => {
   const filterSelected = (value) => () => {
-    store.dispatch(filterChange(value))
+    props.filterChange(value)
   }
 
   return (
@@ -16,4 +16,7 @@ const VisibilityFilter = ({ store }) => {
   )
 } 
 
-export default VisibilityFilter
+export default connect(
+  null,
+  { filterChange }
+)(VisibilityFilter)

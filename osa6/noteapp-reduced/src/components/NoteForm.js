@@ -3,10 +3,13 @@ import { connect } from 'react-redux'
 import { createNote } from '../reducers/noteReducer'
 
 const NoteForm = (props) => {
+  console.log(createNote)
+  console.log(props.createNote)
+  
   const addNote = (event) => {
     event.preventDefault()
     const content = event.target.note.value
-    props.store.dispatch(createNote(content))
+    props.createNote(content)
     event.target.note.value = ''
   }
 
@@ -21,5 +24,7 @@ const NoteForm = (props) => {
   )
 }
 
-const ConnectedNoteForm = connect()(NoteForm)
-export default ConnectedNoteForm
+export default connect(
+  null,
+  { createNote }
+)(NoteForm)
