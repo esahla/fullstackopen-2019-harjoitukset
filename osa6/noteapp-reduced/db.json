@@ -1,22 +1,49 @@
 {
-    "notes": [
-        {
-            "id": 1,
-            "content": "HTML on helppoa",
-            "date": "2019-01-10T17:30:31.098Z",
-            "important": true
-        },
-        {
-            "id": 2,
-            "content": "Selain pystyy suorittamaan vain javascriptiä",
-            "date": "2019-01-10T18:39:34.091Z",
-            "important": false
-        },
-        {
-            "id": 3,
-            "content": "HTTP-protokollan tärkeimmät metodit ovat GET ja POST",
-            "date": "2019-01-10T19:20:14.298Z",
-            "important": true
-        }
-    ]
+  "notes": [
+    {
+      "content": "the app state is in redux store",
+      "important": true,
+      "id": 1
+    },
+    {
+      "content": "state changes are made with actions",
+      "important": false,
+      "id": 2
+    },
+    {
+      "content": "123123123",
+      "important": false,
+      "id": 4
+    },
+    {
+      "content": "3333",
+      "important": false,
+      "id": 5
+    },
+    {
+      "content": "sddasfss",
+      "important": false,
+      "id": 7
+    },
+    {
+      "content": "asdfasdfasd",
+      "important": false,
+      "id": 8
+    },
+    {
+      "content": "3333",
+      "important": false,
+      "id": 9
+    },
+    {
+      "content": "213123123123",
+      "important": false,
+      "id": 10
+    },
+    {
+      "content": "565656",
+      "important": false,
+      "id": 14
+    }
+  ]
 }
