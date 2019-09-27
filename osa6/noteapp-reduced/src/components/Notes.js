@@ -1,14 +1,9 @@
 import React from 'react'
 import { connect } from 'react-redux'
 import Note from './Note'
-import noteService from '../services/notes'
 import { toggleImportanceOf, removeNote } from '../reducers/noteReducer'
 
 const Notes = (props) => {
-  const deleteNote = async (id) => {
-    await noteService.remove(id)
-    props.removeNote(id)
-  }
   return (
     <ul>
       {props.visibleNotes.map(note =>
@@ -16,7 +11,7 @@ const Notes = (props) => {
           key={note.id}
           note={note}
           toggleImportance={() => props.toggleImportanceOf(note.id)}
-          deleteNote={() => deleteNote(note.id)}
+          deleteNote={() => props.removeNote(note.id)}
         />
       )}
     </ul>
