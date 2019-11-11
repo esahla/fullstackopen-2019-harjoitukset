@@ -1,0 +1,16 @@
+{
+  "name": "persons",
+  "version": "1.0.0",
+  "description": "persoona-harkka",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "esahla",
+  "license": "MIT",
+  "dependencies": {
+    "apollo-server": "^2.9.7",
+    "graphql": "^14.5.8"
+  }
+}

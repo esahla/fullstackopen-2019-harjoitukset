@@ -1,22 +1,31 @@
 import React, { useState } from 'react'
 import ListGroup from 'react-bootstrap/ListGroup'
-import Toast from 'react-bootstrap/Toast'
-import Form from 'react-bootstrap/Form'
-import Button from 'react-bootstrap/Button'
+import { Toast, Form, Button, Row, Col, Alert, Navbar, Nav } from 'react-bootstrap'
 import {
   BrowserRouter as Router,
   Route, Link, withRouter
 } from 'react-router-dom'
 
 const Menu = () => {
-
   const padding = { paddingRight: 5 }
-
   return (
     <div>
-      <Link style={padding} to="/">anecdotes</Link>
-      <Link style={padding} to="/create">create new</Link>
-      <Link style={padding} to="/about">about</Link>
+      <Navbar collapseOnSelect expand="lg" variant="light">
+        <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+        <Navbar.Collapse id="responsive-navbar-nav">
+          <Nav className="mr-auto">
+            <Nav.Link href="#" as="span">
+              <Link style={padding} to="/">anecdotes</Link>
+            </Nav.Link>
+            <Nav.Link href="#" as="span">
+              <Link style={padding} to="/create">create new</Link>
+            </Nav.Link>
+            <Nav.Link href="#" as="span">
+              <Link style={padding} to="/about">about</Link>
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
     </div>
   )
 }
@@ -115,15 +124,34 @@ const CreateNew = (props) => {
 
   return (
     <div>
-      <h2>create a new anecdote</h2>
+      <h2>Create a new anecdote</h2>
+      <Alert variant="info">
+        Development purposes only
+      </Alert>
       <Form onSubmit={handleSubmit}>
-        <Form.Label>content</Form.Label>
-        <Form.Control name='content' value={content} onChange={(e) => setContent(e.target.value)} />
-        <Form.Label>author</Form.Label>
-        <Form.Control name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
-        <Form.Label>url for more info</Form.Label>
-        <Form.Control name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
-        <Button variant="primary" type="submit">create</Button>
+        <Form.Group as={Row}>
+          <Form.Label column sm={2}>Content</Form.Label>
+          <Col sm={6}>
+            <Form.Control name='content' value={content} onChange={(e) => setContent(e.target.value)} />
+          </Col>
+        </Form.Group>
+        <Form.Group as={Row}>
+          <Form.Label column sm={2}>Author</Form.Label>
+          <Col sm={6}>
+            <Form.Control name='author' value={author} onChange={(e) => setAuthor(e.target.value)} />
+          </Col>
+        </Form.Group>
+        <Form.Group as={Row}>
+          <Form.Label column sm={2}>URL for more info</Form.Label>
+          <Col sm={6}>
+            <Form.Control name='info' value={info} onChange={(e) => setInfo(e.target.value)} />
+          </Col>
+        </Form.Group>
+        <Form.Group as={Row}>
+          <Col sm={{ span: 10, offset: 2 }}>
+            <Button variant="primary" type="submit">Create</Button>
+          </Col>
+        </Form.Group>
       </Form>
     </div>
   )
@@ -165,14 +193,14 @@ const App = () => {
     setNotification(`a new anecdote ${anecdote.content} created!`)
     setTimeout(() => {
       setNotification('')
-    }, 10000)
+    }, 3000)
   }
 
   const anecdoteById = (id) =>
     anecdotes.find(a => a.id === id)
 
   // TÄTÄ EI TARVITTU TEHTÄVÄN TEKEMISEEN
-  // 
+  //
   // const vote = (id) => {
   //   const anecdote = anecdoteById(id)
   //   const voted = {
