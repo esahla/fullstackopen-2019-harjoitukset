@@ -1,10 +1,15 @@
 import React, { useState } from 'react'
 import Person from './Person'
 import PersonDetails from './PersonDetails'
+import EditNumberForm from './EditNumberForm'
 import PersonForm from './PersonForm'
 import { Mutation } from 'react-apollo'
 import { gql } from 'apollo-boost'
-import { Table, Loader, Divider, Icon, Header, Grid, Placeholder, Segment } from 'semantic-ui-react'
+import {
+  Table, Loader, Divider, Icon,
+  Header, Grid,
+  Message, Transition
+} from 'semantic-ui-react'
 
 const FIND_PERSON = gql`
   query findPersonByName($nameToSearch: String!) {
@@ -39,8 +44,48 @@ mutation createPerson($name: String!, $street: String!, $city: String!, $phone: 
 }
 `
 
+const ALL_PERSONS = gql`
+{
+  allPersons  {
+    name
+    phone
+    id
+  }
+}
+`
+
+const EDIT_NUMBER = gql`
+mutation editNumber($name: String!, $phone: String!) {
+  editNumber(name: $name, phone: $phone)  {
+    name
+    phone
+    address {
+      street
+      city
+    }
+    id
+  }
+}
+`
+
+
 const Persons = ({ result, client }) => {
   const [person, setPerson] = useState(null)
+  const [createErrorMessage, setCreateErrorMessage] = useState(null)
+  const [editErrorMessage, setEditErrorMessage] = useState(null)
+  const handleCreateError = (error) => {
+    setCreateErrorMessage(error.graphQLErrors[0].message)
+    setTimeout(() => {
+      setCreateErrorMessage(null)
+    }, 3000)
+  }
+
+  const handleEditError = (error) => {
+    setEditErrorMessage(error)
+    setTimeout(() => {
+      setEditErrorMessage(null)
+    }, 3000)
+  }
 
   const displayResults = () => {
     if (result.data) {
@@ -73,7 +118,11 @@ const Persons = ({ result, client }) => {
     )
   }
 
-
+  const checkNull = (response) => {
+    if (!response.editNumber) {
+      handleEditError('Given name does not exist')
+    }
+  }
 
   return (
     <div>
@@ -97,7 +146,6 @@ const Persons = ({ result, client }) => {
         </Table.Body>
       </Table>
       <br />
-
       <Grid>
         <Grid.Column floated='left' width={8}>
           <Divider horizontal>
@@ -106,7 +154,19 @@ const Persons = ({ result, client }) => {
               Add a new person
           </Header>
           </Divider>
-          <Mutation mutation={CREATE_PERSON}>
+          <Transition visible={Boolean(createErrorMessage)} animation='swing down' duration={500}>
+            <div>
+              <Message
+                error
+                header='Error'
+                content={createErrorMessage}
+              />
+            </div>
+          </Transition>
+          <Mutation mutation={CREATE_PERSON}
+            refetchQueries={[{ query: ALL_PERSONS }]}
+            onError={handleCreateError}
+          >
             {(addPerson) =>
               <PersonForm
                 addPerson={addPerson}
@@ -114,36 +174,33 @@ const Persons = ({ result, client }) => {
             }
           </Mutation>
         </Grid.Column>
-
         <Grid.Column floated='left' width={8}>
           <Divider horizontal>
             <Header as='h3'>
-              <Icon name="question" />
-              Something else
-          </Header>
+              <Icon name='edit' />
+              Edit number
+            </Header>
           </Divider>
-          <Segment raised>
-            <Placeholder>
-              <Placeholder.Header image>
-                <Placeholder.Line />
-                <Placeholder.Line />
-              </Placeholder.Header>
-              <Placeholder.Paragraph>
-                <Placeholder.Line length='medium' />
-                <Placeholder.Line length='short' />
-              </Placeholder.Paragraph>
-            </Placeholder>
-            <Placeholder>
-              <Placeholder.Header image>
-                <Placeholder.Line />
-                <Placeholder.Line />
-              </Placeholder.Header>
-              <Placeholder.Paragraph>
-                <Placeholder.Line length='medium' />
-                <Placeholder.Line length='short' />
-              </Placeholder.Paragraph>
-            </Placeholder>
-          </Segment>
+          <Transition visible={Boolean(editErrorMessage)} animation='swing down' duration={500}>
+            <div>
+              <Message
+                error
+                header='Error'
+                content={editErrorMessage}
+              />
+            </div>
+          </Transition>
+          <Mutation mutation={EDIT_NUMBER}
+            refetchQueries={[{ query: ALL_PERSONS }]}
+            onError={handleCreateError}
+            onCompleted={(n) => {checkNull(n)}}
+          >
+            {(editPhone) =>
+              <EditNumberForm
+                editPhone={editPhone}
+              />
+            }
+          </Mutation>
         </Grid.Column>
       </Grid>
     </div>
