@@ -3,13 +3,14 @@ import Person from './Person'
 import PersonDetails from './PersonDetails'
 import EditNumberForm from './EditNumberForm'
 import PersonForm from './PersonForm'
-import { Mutation } from 'react-apollo'
 import { gql } from 'apollo-boost'
 import {
   Table, Loader, Divider, Icon,
-  Header, Grid,
+  Header, Grid, Segment,
   Message, Transition
 } from 'semantic-ui-react'
+import { useMutation } from '@apollo/react-hooks'
+import { useApolloClient } from '@apollo/react-hooks'
 
 const FIND_PERSON = gql`
   query findPersonByName($nameToSearch: String!) {
@@ -68,8 +69,8 @@ mutation editNumber($name: String!, $phone: String!) {
 }
 `
 
-
-const Persons = ({ result, client }) => {
+const Persons = ({ result }) => {
+  const client = useApolloClient()
   const [person, setPerson] = useState(null)
   const [createErrorMessage, setCreateErrorMessage] = useState(null)
   const [editErrorMessage, setEditErrorMessage] = useState(null)
@@ -86,6 +87,17 @@ const Persons = ({ result, client }) => {
       setEditErrorMessage(null)
     }, 3000)
   }
+
+  const [addPerson] = useMutation(CREATE_PERSON, {
+    onError: handleCreateError,
+    refetchQueries: [{ query: ALL_PERSONS }]
+  })
+
+  const [editPhone] = useMutation(EDIT_NUMBER, {
+    refetchQueries: [{ query: ALL_PERSONS }],
+    onError: handleEditError,
+    onCompleted: (n) => { checkNull(n) }
+  })
 
   const displayResults = () => {
     if (result.data) {
@@ -154,25 +166,18 @@ const Persons = ({ result, client }) => {
               Add a new person
           </Header>
           </Divider>
-          <Transition visible={Boolean(createErrorMessage)} animation='swing down' duration={500}>
-            <div>
-              <Message
-                error
-                header='Error'
-                content={createErrorMessage}
-              />
-            </div>
-          </Transition>
-          <Mutation mutation={CREATE_PERSON}
-            refetchQueries={[{ query: ALL_PERSONS }]}
-            onError={handleCreateError}
-          >
-            {(addPerson) =>
-              <PersonForm
-                addPerson={addPerson}
-              />
-            }
-          </Mutation>
+          <Segment raised>
+            <Transition visible={Boolean(createErrorMessage)} animation='swing down' duration={500}>
+              <div>
+                <Message
+                  error
+                  header='Error'
+                  content={createErrorMessage}
+                />
+              </div>
+            </Transition>
+            <PersonForm addPerson={addPerson} />
+          </Segment>
         </Grid.Column>
         <Grid.Column floated='left' width={8}>
           <Divider horizontal>
@@ -181,26 +186,18 @@ const Persons = ({ result, client }) => {
               Edit number
             </Header>
           </Divider>
-          <Transition visible={Boolean(editErrorMessage)} animation='swing down' duration={500}>
-            <div>
-              <Message
-                error
-                header='Error'
-                content={editErrorMessage}
-              />
-            </div>
-          </Transition>
-          <Mutation mutation={EDIT_NUMBER}
-            refetchQueries={[{ query: ALL_PERSONS }]}
-            onError={handleCreateError}
-            onCompleted={(n) => {checkNull(n)}}
-          >
-            {(editPhone) =>
-              <EditNumberForm
-                editPhone={editPhone}
-              />
-            }
-          </Mutation>
+          <Segment raised>
+            <Transition visible={Boolean(editErrorMessage)} animation='swing down' duration={500}>
+              <div>
+                <Message
+                  error
+                  header='Error'
+                  content={editErrorMessage}
+                />
+              </div>
+            </Transition>
+            <EditNumberForm editPhone={editPhone} />
+          </Segment>
         </Grid.Column>
       </Grid>
     </div>

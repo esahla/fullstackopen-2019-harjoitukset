@@ -1,8 +1,8 @@
 import React from 'react'
 import { Container } from 'semantic-ui-react'
-import { Query, ApolloConsumer } from 'react-apollo'
 import { gql } from 'apollo-boost'
 import Persons from './components/Persons'
+import { useQuery } from '@apollo/react-hooks'
 
 const ALL_PERSONS = gql`
 {
@@ -15,16 +15,11 @@ const ALL_PERSONS = gql`
 `
 
 const App = () => {
+  const persons = useQuery(ALL_PERSONS)
   return (
     <Container>
       <h1>Persons</h1>
-      <ApolloConsumer>
-        {(client =>
-          <Query query={ALL_PERSONS} pollInterval={2000}>
-            {(result) => <Persons result={result} client={client}/>}
-          </Query>
-        )}
-      </ApolloConsumer>
+      <Persons result={persons} />}
     </Container>
   )
 }
