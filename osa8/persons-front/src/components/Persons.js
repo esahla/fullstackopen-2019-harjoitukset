@@ -202,7 +202,6 @@ const Persons = ({ result }) => {
       </Grid>
     </div>
   )
-
 }
 
 export default Persons

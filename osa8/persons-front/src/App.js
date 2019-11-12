@@ -19,7 +19,7 @@ const App = () => {
   return (
     <Container>
       <h1>Persons</h1>
-      <Persons result={persons} />}
+      <Persons result={persons} />
     </Container>
   )
 }
