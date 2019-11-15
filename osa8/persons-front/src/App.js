@@ -1,5 +1,5 @@
 import React from 'react'
-import { Container } from 'semantic-ui-react'
+import { Container, } from 'semantic-ui-react'
 import { gql } from 'apollo-boost'
 import Persons from './components/Persons'
 import { useQuery } from '@apollo/react-hooks'

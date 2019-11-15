@@ -7,7 +7,7 @@ import { gql } from 'apollo-boost'
 import {
   Table, Loader, Divider, Icon,
   Header, Grid, Segment,
-  Message, Transition
+  Message, Transition,
 } from 'semantic-ui-react'
 import { useMutation } from '@apollo/react-hooks'
 import { useApolloClient } from '@apollo/react-hooks'
@@ -71,7 +71,7 @@ mutation editNumber($name: String!, $phone: String!) {
 
 const Persons = ({ result }) => {
   const client = useApolloClient()
-  const [person, setPerson] = useState(null)
+  const [person, setPerson] = useState('')
   const [createErrorMessage, setCreateErrorMessage] = useState(null)
   const [editErrorMessage, setEditErrorMessage] = useState(null)
   const handleCreateError = (error) => {
@@ -82,7 +82,7 @@ const Persons = ({ result }) => {
   }
 
   const handleEditError = (error) => {
-    setEditErrorMessage(error)
+    setEditErrorMessage(error.graphQLErrors[0].message)
     setTimeout(() => {
       setEditErrorMessage(null)
     }, 3000)
