@@ -65,14 +65,14 @@ const typeDefs = gql`
   }
 
   type User {
-  username: String!
-  friends: [Person]
-  id: ID!
-}
+    username: String!
+    friends: [Person]
+    id: ID!
+  }
 
-type Token {
-  value: String!
-}
+  type Token {
+    value: String!
+  }
 
   type Query {
     personCount: Int!
@@ -103,6 +103,9 @@ type Token {
     addAsFriend(
       name: String!
     ): User
+    deletePerson(
+      name: String!
+    ): Person
   }
 `
 
@@ -161,17 +164,9 @@ const resolvers = {
         })
       }
       return person
-      // const person = persons.find(p => p.name === args.name)
-      // if (!person) {
-      //   return null
-      // }
-      // const updatedPerson = { ...person, phone: args.phone }
-      // persons = persons.map(p => p.name === args.name ? updatedPerson : p)
-      // return updatedPerson
     },
     createUser: (root, args) => {
       const user = new User({ username: args.username })
-
       return user.save()
         .catch(error => {
           throw new UserInputError(error.message, {
@@ -198,7 +193,7 @@ const resolvers = {
         !currentUser.friends.map(f => f._id).includes(person._id)
 
       if (!currentUser) {
-        throw new AuthenticationError("not authenticated")
+        throw new AuthenticationError('Not authenticated')
       }
 
       const person = await Person.findOne({ name: args.name })
@@ -210,7 +205,24 @@ const resolvers = {
 
       return currentUser
     },
-  },
+    deletePerson: async (root, args, context) => {
+      const currentUser = context.currentUser
+      if (!currentUser) {
+        throw new AuthenticationError('Not authenticated');
+      }
+      try {
+        const removePerson = await Person.findOne({ name: args.name })
+        await Person.findByIdAndRemove(removePerson.id, (error, user) => {
+          return user
+        })
+      } catch (error) {
+        throw new UserInputError(error.message, {
+          invalidArgs: args,
+        })
+      }
+
+    },
+  }
 }
 
 const server = new ApolloServer({

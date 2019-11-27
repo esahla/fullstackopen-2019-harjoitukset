@@ -1,13 +1,15 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import Person from './Person'
 import PersonDetails from './PersonDetails'
 import EditNumberForm from './EditNumberForm'
 import PersonForm from './PersonForm'
+import LoginForm from './LoginForm'
 import { gql } from 'apollo-boost'
 import {
   Table, Loader, Divider, Icon,
   Header, Grid, Segment,
-  Message, Transition,
+  Message, Transition, Button,
+  Label,
 } from 'semantic-ui-react'
 import { useMutation } from '@apollo/react-hooks'
 import { useApolloClient } from '@apollo/react-hooks'
@@ -69,23 +71,56 @@ mutation editNumber($name: String!, $phone: String!) {
 }
 `
 
+const LOGIN = gql`
+mutation login($username: String!, $password: String!) {
+  login(username: $username, password: $password)  {
+    value
+  }
+}
+`
+
+const DELETE = gql`
+mutation deletePerson($name: String!) {
+  deletePerson(name: $name)  {
+    name
+    id
+  }
+}
+`
+
 const Persons = ({ result }) => {
   const client = useApolloClient()
   const [person, setPerson] = useState('')
   const [createErrorMessage, setCreateErrorMessage] = useState(null)
   const [editErrorMessage, setEditErrorMessage] = useState(null)
+  const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
+
+  useEffect(() => {
+    const user = window.localStorage.getItem('loggedUser')
+    const token = window.localStorage.getItem('loggedUserToken')
+    if (user) {
+      setToken(token)
+      setUser(user)
+    }
+  }, [])
+
+  const handleError = (error) => {
+    console.log("Error!", error)
+  }
+
   const handleCreateError = (error) => {
     setCreateErrorMessage(error.graphQLErrors[0].message)
     setTimeout(() => {
       setCreateErrorMessage(null)
-    }, 3000)
+    }, 5000)
   }
 
   const handleEditError = (error) => {
     setEditErrorMessage(error.graphQLErrors[0].message)
     setTimeout(() => {
       setEditErrorMessage(null)
-    }, 3000)
+    }, 5000)
   }
 
   const [addPerson] = useMutation(CREATE_PERSON, {
@@ -99,11 +134,20 @@ const Persons = ({ result }) => {
     onCompleted: (n) => { checkNull(n) }
   })
 
+  const [login] = useMutation(LOGIN, {
+    onError: handleError
+  })
+
+  const [deletePerson] = useMutation(DELETE, {
+    refetchQueries: [{ query: ALL_PERSONS }],
+    onError: handleError
+  })
+
   const displayResults = () => {
     if (result.data) {
       return (
         result.data.allPersons.map(person =>
-          <Person key={person.id} person={person} setter={(n) => showPerson(n)} />
+          <Person key={person.id} person={person} setter={(n) => showPerson(n)} deleter={(n) => deletePerson(n)} />
         )
       )
     }
@@ -136,11 +180,44 @@ const Persons = ({ result }) => {
     }
   }
 
+  const renderLoginButton = () => {
+    return (
+      <div>
+        <Label size='large' color='green'>
+          <Icon name='user outline'/>
+          {user} logged in
+        </Label>
+        <Button onClick={() => handleLogout()}>Logout</Button>
+      </div>
+    )
+  }
+
+  const handleLogout = () => {
+    setUser(null)
+    setToken(null)
+    window.localStorage.removeItem('loggedUser')
+    window.localStorage.removeItem('loggedUserToken')
+    client.resetStore()
+  }
+
+  if (!token) {
+    return (
+      <div>
+        <h2>Login</h2>
+        <LoginForm
+          login={login}
+          setToken={(token) => setToken(token)}
+          setUser={(user) => setUser(user)}
+        />
+      </div>
+    )
+  }
   return (
     <div>
+      {renderLoginButton()}
       <Divider horizontal>
         <Header as='h3'>
-          <Icon name="table" />
+          <Icon name='list alternate outline' />
           List of persons
           </Header>
       </Divider>
@@ -162,7 +239,7 @@ const Persons = ({ result }) => {
         <Grid.Column floated='left' width={8}>
           <Divider horizontal>
             <Header as='h3'>
-              <Icon name="user" />
+              <Icon name='add user' />
               Add a new person
           </Header>
           </Divider>
