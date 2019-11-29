@@ -9,13 +9,16 @@ const PersonForm = (props) => {
 
   const submit = async (event) => {
     event.preventDefault()
-    await props.addPerson({
-      variables: { name, street, city, phone: phone.length>0 ? phone : null }
+    const persoona = await props.addPerson({
+      variables: { name, street, city, phone: phone.length > 0 ? phone : null }
     })
-    setName('')
-    setPhone('')
-    setStreet('')
-    setCity('')
+    if (persoona) {
+      props.notify(`Person ${name} successfully created.`)
+      setName('')
+      setPhone('')
+      setStreet('')
+      setCity('')
+    } 
   }
 
   return (

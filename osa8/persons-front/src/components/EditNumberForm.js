@@ -1,17 +1,20 @@
 import React, { useState } from 'react'
 import { Form, Button } from 'semantic-ui-react'
 
-const EditNumberForm = ({ editPhone }) => {
+const EditNumberForm = ({ editPhone, notify }) => {
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
 
   const submit = async (event) => {
     event.preventDefault()
-    await editPhone({
+    const persoona = await editPhone({
       variables: { name, phone }
     })
-    setName('')
-    setPhone('')
+    if (persoona) {
+      notify(`Person ${name} number updated to ${phone}.`)
+      setName('')
+      setPhone('')
+    }
   }
 
   return (

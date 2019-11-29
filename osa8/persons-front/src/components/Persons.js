@@ -7,12 +7,13 @@ import LoginForm from './LoginForm'
 import { gql } from 'apollo-boost'
 import {
   Table, Loader, Divider, Icon,
-  Header, Grid, Segment,
-  Message, Transition, Button,
+  Header, Grid, Segment, Button,
   Label,
 } from 'semantic-ui-react'
 import { useMutation } from '@apollo/react-hooks'
 import { useApolloClient } from '@apollo/react-hooks'
+import { SemanticToastContainer, toast } from 'react-semantic-toasts'
+import 'react-semantic-toasts/styles/react-semantic-alert.css'
 
 const FIND_PERSON = gql`
   query findPersonByName($nameToSearch: String!) {
@@ -91,8 +92,8 @@ mutation deletePerson($name: String!) {
 const Persons = ({ result }) => {
   const client = useApolloClient()
   const [person, setPerson] = useState('')
-  const [createErrorMessage, setCreateErrorMessage] = useState(null)
-  const [editErrorMessage, setEditErrorMessage] = useState(null)
+  // const [createErrorMessage, setCreateErrorMessage] = useState(null)
+  // const [editErrorMessage, setEditErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
 
@@ -110,22 +111,41 @@ const Persons = ({ result }) => {
   }
 
   const handleCreateError = (error) => {
-    setCreateErrorMessage(error.graphQLErrors[0].message)
     setTimeout(() => {
-      setCreateErrorMessage(null)
-    }, 5000)
+      toast({
+        type: 'error',
+        icon: 'exclamation circle',
+        title: 'Error creating person',
+        description: error.graphQLErrors[0].message,
+        animation: 'tada',
+        time: 5000,
+      })
+    }, 0)
   }
 
   const handleEditError = (error) => {
-    setEditErrorMessage(error.graphQLErrors[0].message)
     setTimeout(() => {
-      setEditErrorMessage(null)
-    }, 5000)
+      toast({
+        type: 'error',
+        icon: 'exclamation circle',
+        title: 'Error editing number',
+        description: error.graphQLErrors[0].message,
+        animation: 'tada',
+        time: 5000,
+      })
+    }, 0)
   }
 
   const [addPerson] = useMutation(CREATE_PERSON, {
     onError: handleCreateError,
-    refetchQueries: [{ query: ALL_PERSONS }]
+    update: (store, response) => {
+      const dataInStore = store.readQuery({ query: ALL_PERSONS })
+      dataInStore.allPersons.push(response.data.addPerson)
+      store.writeQuery({
+        query: ALL_PERSONS,
+        data: dataInStore
+      })
+    }
   })
 
   const [editPhone] = useMutation(EDIT_NUMBER, {
@@ -147,7 +167,12 @@ const Persons = ({ result }) => {
     if (result.data) {
       return (
         result.data.allPersons.map(person =>
-          <Person key={person.id} person={person} setter={(n) => showPerson(n)} deleter={(n) => deletePerson(n)} />
+          <Person
+            key={person.id}
+            person={person}
+            setter={(n) => showPerson(n)}
+            deleter={(n) => deletePerson(n)}
+          />
         )
       )
     }
@@ -184,7 +209,7 @@ const Persons = ({ result }) => {
     return (
       <div>
         <Label size='large' color='green'>
-          <Icon name='user outline'/>
+          <Icon name='user outline' />
           {user} logged in
         </Label>
         <Button onClick={() => handleLogout()}>Logout</Button>
@@ -198,6 +223,19 @@ const Persons = ({ result }) => {
     window.localStorage.removeItem('loggedUser')
     window.localStorage.removeItem('loggedUserToken')
     client.resetStore()
+  }
+
+  const successNotifier = (message) => {
+    setTimeout(() => {
+      toast({
+        type: 'success',
+        icon: 'check',
+        title: 'Success',
+        description: message,
+        animation: 'drop',
+        time: 5000,
+      })
+    }, 0)
   }
 
   if (!token) {
@@ -214,6 +252,7 @@ const Persons = ({ result }) => {
   }
   return (
     <div>
+      <SemanticToastContainer />
       {renderLoginButton()}
       <Divider horizontal>
         <Header as='h3'>
@@ -244,7 +283,7 @@ const Persons = ({ result }) => {
           </Header>
           </Divider>
           <Segment raised>
-            <Transition visible={Boolean(createErrorMessage)} animation='swing down' duration={500}>
+            {/* <Transition visible={Boolean(createErrorMessage)} animation='swing down' duration={500}>
               <div>
                 <Message
                   error
@@ -252,8 +291,8 @@ const Persons = ({ result }) => {
                   content={createErrorMessage}
                 />
               </div>
-            </Transition>
-            <PersonForm addPerson={addPerson} />
+            </Transition> */}
+            <PersonForm addPerson={addPerson} notify={(m) => successNotifier(m)} />
           </Segment>
         </Grid.Column>
         <Grid.Column floated='left' width={8}>
@@ -264,7 +303,7 @@ const Persons = ({ result }) => {
             </Header>
           </Divider>
           <Segment raised>
-            <Transition visible={Boolean(editErrorMessage)} animation='swing down' duration={500}>
+            {/* <Transition visible={Boolean(editErrorMessage)} animation='swing down' duration={500}>
               <div>
                 <Message
                   error
@@ -272,8 +311,8 @@ const Persons = ({ result }) => {
                   content={editErrorMessage}
                 />
               </div>
-            </Transition>
-            <EditNumberForm editPhone={editPhone} />
+            </Transition> */}
+            <EditNumberForm editPhone={editPhone} notify={(m) => successNotifier(m)} />
           </Segment>
         </Grid.Column>
       </Grid>
