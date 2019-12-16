@@ -10,23 +10,29 @@ import {
   Header, Grid, Segment, Button,
   Label,
 } from 'semantic-ui-react'
-import { useMutation } from '@apollo/react-hooks'
-import { useApolloClient } from '@apollo/react-hooks'
+import { useMutation, useApolloClient, useSubscription } from '@apollo/react-hooks'
 import { SemanticToastContainer, toast } from 'react-semantic-toasts'
 import 'react-semantic-toasts/styles/react-semantic-alert.css'
+
+const PERSON_DETAILS = gql`
+  fragment PersonDetails on Person {
+    id
+    name
+    phone 
+    address {
+     street 
+      city
+    }
+  }
+`
 
 const FIND_PERSON = gql`
   query findPersonByName($nameToSearch: String!) {
     findPerson(name: $nameToSearch) {
-      name
-      phone 
-      id
-      address {
-        street
-        city
+        ...PersonDetails
       }
     }
-  }
+  ${PERSON_DETAILS}
 `
 
 const CREATE_PERSON = gql`
@@ -37,15 +43,10 @@ mutation createPerson($name: String!, $street: String!, $city: String!, $phone: 
     city: $city,
     phone: $phone
   ) {
-    name
-    phone
-    id
-    address {
-      street
-      city
+      ...PersonDetails
     }
   }
-}
+${PERSON_DETAILS}
 `
 
 const ALL_PERSONS = gql`
@@ -61,15 +62,10 @@ const ALL_PERSONS = gql`
 const EDIT_NUMBER = gql`
 mutation editNumber($name: String!, $phone: String!) {
   editNumber(name: $name, phone: $phone)  {
-    name
-    phone
-    address {
-      street
-      city
-    }
-    id
+    ...PersonDetails
   }
 }
+${PERSON_DETAILS}
 `
 
 const LOGIN = gql`
@@ -89,11 +85,18 @@ mutation deletePerson($name: String!) {
 }
 `
 
+const PERSON_ADDED = gql`
+  subscription {
+    personAdded {
+      ...PersonDetails
+    }
+  }
+${PERSON_DETAILS}
+`
+
 const Persons = ({ result }) => {
   const client = useApolloClient()
   const [person, setPerson] = useState('')
-  // const [createErrorMessage, setCreateErrorMessage] = useState(null)
-  // const [editErrorMessage, setEditErrorMessage] = useState(null)
   const [user, setUser] = useState(null)
   const [token, setToken] = useState(null)
 
@@ -139,12 +142,7 @@ const Persons = ({ result }) => {
   const [addPerson] = useMutation(CREATE_PERSON, {
     onError: handleCreateError,
     update: (store, response) => {
-      const dataInStore = store.readQuery({ query: ALL_PERSONS })
-      dataInStore.allPersons.push(response.data.addPerson)
-      store.writeQuery({
-        query: ALL_PERSONS,
-        data: dataInStore
-      })
+      updateCacheWith(response.data.addPerson)
     }
   })
 
@@ -161,6 +159,27 @@ const Persons = ({ result }) => {
   const [deletePerson] = useMutation(DELETE, {
     refetchQueries: [{ query: ALL_PERSONS }],
     onError: handleError
+  })
+
+  const updateCacheWith = (addedPerson) => {
+    const includedIn = (set, object) => 
+      set.map(p => p.id).includes(object.id)  
+
+    const dataInStore = client.readQuery({ query: ALL_PERSONS })
+    if (!includedIn(dataInStore.allPersons, addedPerson)) {
+      client.writeQuery({
+        query: ALL_PERSONS,
+        data: { allPersons : dataInStore.allPersons.concat(addedPerson) }
+      })
+    }   
+  }
+
+  useSubscription(PERSON_ADDED, {
+    onSubscriptionData: ({ subscriptionData }) => {
+      const addedPerson = subscriptionData.data.personAdded
+      creationNotifier(`${addedPerson.name} added`)
+      updateCacheWith(addedPerson)
+    }
   })
 
   const displayResults = () => {
@@ -231,6 +250,19 @@ const Persons = ({ result }) => {
         type: 'success',
         icon: 'check',
         title: 'Success',
+        description: message,
+        animation: 'drop',
+        time: 5000,
+      })
+    }, 0)
+  }
+
+  const creationNotifier = (message) => {
+    setTimeout(() => {
+      toast({
+        type: 'info',
+        icon: 'announcement',
+        title: 'New person added',
         description: message,
         animation: 'drop',
         time: 5000,
